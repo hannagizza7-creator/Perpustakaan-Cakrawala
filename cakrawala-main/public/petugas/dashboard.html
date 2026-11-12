@@ -1,0 +1,131 @@
+<!doctype html>
+<!--
+  =============================================================================================
+  CAKRAWALA DIGITAL LIBRARY - DASHBOARD PETUGAS SIRKULASI (MODULAR MASTER LAYOUT)
+  File: public/petugas/dashboard.html
+  
+  STRUKTUR KOMPONEN MODULAR TAHAP 1:
+  - components/layout/sidebar.html       : Sidebar navigasi desktop & bilah menu mobile
+  - components/layout/header.html        : Topbar judul meja kerja & breadcrumb
+  - components/tabs/tab-overview.html    : Meja 1 - Statistik, ringkasan, dan kartu metrik
+  - components/tabs/tab-sirkulasi.html   : Meja 2 - Antrean prapinjam & peminjaman walk-in
+  - components/tabs/tab-pengembalian.html: Meja 3 - Pengembalian buku & kalkulator denda
+  - components/tabs/tab-inventaris.html  : Meja 4 - Master katalog & cetak stiker QR
+  - components/modals/                   : Jendela-jendela modal dialog sistem terpusat
+  =============================================================================================
+-->
+<html lang="id">
+
+<head>
+  <!-- ROUTE GUARD (sinkron): hanya role Petugas/Admin. Berjalan sebelum halaman dirender. -->
+  <script>
+    (function () {
+      var LOGIN_URL = '/login.html';
+      var ALLOWED = ['petugas', 'admin'];
+      var HOME = {
+        siswa: '/siswa-guru/dashboard.html',
+        guru: '/siswa-guru/dashboard.html',
+        petugas: '/petugas/dashboard.html',
+        admin: '/admin/dashboard.html'
+      };
+      try {
+        var raw = sessionStorage.getItem('cakrawala_user') || localStorage.getItem('cakrawala_user');
+        if (!raw) { window.location.replace(LOGIN_URL); return; }
+        var user = JSON.parse(raw);
+        var role = (user && user.role ? String(user.role) : '').trim().toLowerCase();
+        // Role tidak berhak -> lempar ke dashboard milik role-nya sendiri
+        if (ALLOWED.indexOf(role) === -1) { window.location.replace(HOME[role] || LOGIN_URL); }
+      } catch (e) {
+        window.location.replace(LOGIN_URL);
+      }
+    })();
+  </script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Petugas Sirkulasi | CAKRAWALA Digital Library</title>
+
+  <!-- Tailwind CSS CDN & Konfigurasi Tema Navy Cakrawala -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: '#000C4F',
+            'navy-light': '#0a1a7a',
+            'navy-dark': '#000836'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <!-- QRCode.js Generator -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- jsQR Decoder & HTML5-QRCode Scanner -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <!-- Stylesheet Khusus Dashboard Petugas -->
+  <link rel="stylesheet" href="../assets/css/dashboard-petugas.css" />
+</head>
+
+<body class="bg-slate-50 font-sans text-slate-800 antialiased h-screen overflow-hidden flex flex-col md:flex-row selection:bg-navy selection:text-white">
+
+  <!-- 1. Navigasi Sidebar & Header Mobile -->
+  <include src="./components/layout/sidebar.html" />
+
+  <!-- 2. Area Konten Utama Meja Kerja (Independent Scroll Viewport) -->
+  <div class="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
+    <!-- Header Atas Dinamis: Breadcrumb & Judul Meja -->
+    <include src="./components/layout/header.html" />
+
+    <!-- Ruang Kerja Utama (5 Meja Operasional) -->
+    <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
+      <!-- Meja 1: Overview Operasional & KPI -->
+      <include src="./components/tabs/tab-overview.html" />
+
+      <!-- Meja 2: Sirkulasi Peminjaman & Prapinjam -->
+      <include src="./components/tabs/tab-sirkulasi.html" />
+
+      <!-- Meja 3: Pengembalian Buku & Denda -->
+      <include src="./components/tabs/tab-pengembalian.html" />
+
+      <!-- Meja 4: Inventaris Katalog Buku -->
+      <include src="./components/tabs/tab-inventaris.html" />
+
+      <!-- Meja 5: Kelola Pengumuman & Poster -->
+      <include src="./components/tabs/tab-pengumuman.html" />
+    </main>
+  </div>
+
+  <!-- Jendela-Jendela Modal Pop-up Terpusat -->
+  <include src="./components/modals/modal-buku.html" />
+  <include src="./components/modals/modal-scanner.html" />
+  <include src="./components/modals/modal-sirkulasi.html" />
+  <include src="./components/modals/modal-pengembalian.html" />
+  <include src="./components/modals/modal-pengumuman.html" />
+  <include src="./components/modals/modal-logout.html" />
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full" aria-live="polite"></div>
+
+  <!-- Script Modules -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="../assets/js/supabaseClient.js"></script>
+  <script type="module" src="petugas.js"></script>
+</body>
+
+</html>

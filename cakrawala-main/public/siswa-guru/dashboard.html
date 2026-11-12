@@ -1,0 +1,123 @@
+
+<!doctype html>
+<!--
+  =============================================================================================
+  CAKRAWALA DIGITAL LIBRARY - PORTAL ANGGOTA SISWA & GURU (MODULAR MASTER LAYOUT)
+  File: public/siswa-guru/dashboard.html
+  =============================================================================================
+-->
+<html lang="id">
+
+<head>
+  <!-- ROUTE GUARD (sinkron): hanya role Siswa/Guru. Berjalan sebelum halaman dirender. -->
+  <script>
+    (function () {
+      var LOGIN_URL = '/login.html';
+      var ALLOWED = ['siswa', 'guru'];
+      var HOME = {
+        siswa: '/siswa-guru/dashboard.html',
+        guru: '/siswa-guru/dashboard.html',
+        petugas: '/petugas/dashboard.html',
+        admin: '/admin/dashboard.html'
+      };
+      try {
+        var raw = sessionStorage.getItem('cakrawala_user') || localStorage.getItem('cakrawala_user');
+        if (!raw) { window.location.replace(LOGIN_URL); return; }
+        var user = JSON.parse(raw);
+        var role = (user && user.role ? String(user.role) : '').trim().toLowerCase();
+        // Role tidak berhak -> lempar ke dashboard milik role-nya sendiri
+        if (ALLOWED.indexOf(role) === -1) { window.location.replace(HOME[role] || LOGIN_URL); }
+      } catch (e) {
+        window.location.replace(LOGIN_URL);
+      }
+    })();
+  </script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal Siswa & Guru | CAKRAWALA Digital Library</title>
+
+  <!-- Tailwind CSS CDN & Konfigurasi Tema Navy Cakrawala -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: '#000C4F',
+            'navy-light': '#0a1a7a',
+            'navy-dark': '#000836'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          },
+          boxShadow: {
+            '2xs': '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+            'xs': '0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px 0 rgba(0, 0, 0, 0.04)'
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <!-- QRCode.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- Stylesheet Khusus Dashboard Siswa & Guru -->
+  <link rel="stylesheet" href="../assets/css/dashboard-siswa-guru.css" />
+</head>
+
+<body class="bg-slate-50 font-sans text-slate-800 antialiased h-screen overflow-hidden flex flex-col md:flex-row selection:bg-navy selection:text-white">
+
+  <!-- 1. Navigasi Sidebar & Header Mobile -->
+  <include src="./components/layout/navbar.html"></include>
+
+  <!-- 2. Area Utama (Independent Scroll Viewport) -->
+  <div class="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
+
+    <!-- Header Atas: Breadcrumb & Judul Halaman -->
+    <include src="./components/layout/header.html"></include>
+
+    <!-- Konten Utama Dashboard (Membungkus ke-5 Tab) -->
+    <main class="flex-1 p-5 sm:p-7 max-w-7xl w-full mx-auto space-y-6">
+      <!-- Tab 1: Beranda / Overview (Aktif Default) -->
+      <include src="./components/tabs/tab-beranda.html"></include>
+
+      <!-- Tab 2: Katalog Koleksi & Pra-Pinjam (Hidden Default) -->
+      <include src="./components/tabs/tab-katalog.html"></include>
+
+      <!-- Tab 3: Peminjaman Saya (Buku Aktif & Antrean) (Hidden Default) -->
+      <include src="./components/tabs/tab-peminjaman.html"></include>
+
+      <!-- Tab 4: Riwayat Pengembalian & Catatan Denda (Hidden Default) -->
+      <include src="./components/tabs/tab-riwayat.html"></include>
+
+      <!-- Tab 5: Kartu Anggota Digital & Pengaturan Profil (Hidden Default) -->
+      <include src="./components/tabs/tab-profil.html"></include>
+    </main>
+
+    <!-- Footer Perpustakaan -->
+    <include src="./components/layout/footer.html"></include>
+  </div>
+
+  <!-- 3. Dialog Modals & Pop-ups Terpusat -->
+  <include src="./components/modals/modal-detail-buku.html"></include>
+  <include src="./components/modals/modal-tiket-prapinjam.html"></include>
+
+  <!-- 4. Wadah Toast Notifikasi -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full" aria-live="polite"></div>
+
+  <!-- 5. Scripts Koneksi & Logika Utama yang Aktif Berjalan -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="../assets/js/supabaseClient.js"></script>
+  <script type="module" src="siswaGuru.js"></script>
+</body>
+
+</html>
